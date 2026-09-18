@@ -1,0 +1,109 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">YOUR OPERATIONS, ORGANIZED</p>
+    <h1>All orders</h1>
+    <p class="subtitle">Track purchases, review details, and keep fulfillment moving.</p>
+  </div>
+  <a class="primary-btn" routerLink="/orders/new">＋ New order</a>
+</div>
+<section class="card">
+  <div class="section-heading">
+    <h2>Order directory</h2>
+    <p class="subtitle">All the details you need, in one place.</p>
+  </div>
+  <div class="list-toolbar">
+    <label class="search-label"
+      >Search orders<input
+        type="search"
+        placeholder="Search reference, customer or email"
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+    /></label>
+    <label class="filter-label"
+      >Status<select
+        [value]="store.statusFilter() || ''"
+        (change)="onFilterChange($any($event.target).value)"
+      >
+        <option value="">All statuses</option>
+        @for (status of allStatuses; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
+      </select></label
+    >
+    <button
+      type="button"
+      class="secondary-btn"
+      (click)="refresh()"
+      [disabled]="store.listLoading()"
+    >
+      {{ store.listLoading() ? 'Refreshing…' : 'Refresh' }}
+    </button>
+  </div>
+  @if (store.listError()) {
+    <div class="banner banner-error" role="alert">{{ store.listError() }}</div>
+  }
+  @if (store.listLoading()) {
+    <p class="loading-state" role="status">Loading orders…</p>
+  }
+  @if (!store.listLoading() && !store.listError() && visibleOrders().length === 0) {
+    <div class="empty-state">
+      <span class="empty-icon" aria-hidden="true">▤</span>
+      <h2>
+        {{ search() || store.statusFilter() ? 'No matching orders' : 'Your orders start here' }}
+      </h2>
+      <p>
+        {{
+          search() || store.statusFilter()
+            ? 'Try a different search or status filter.'
+            : 'Create your first purchase order to start tracking its progress.'
+        }}
+      </p>
+      <a class="primary-btn" routerLink="/orders/new">Create an order</a>
+    </div>
+  }
+  @if (visibleOrders().length > 0) {
+    <div class="table-scroll" [attr.aria-busy]="store.listLoading()">
+      <table class="order-table">
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Items</th>
+            <th class="numeric">Total</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (order of visibleOrders(); track order.id) {
+            <tr>
+              <td>
+                <a class="order-link" [routerLink]="['/orders', order.id]"
+                  >{{ order.externalReference }} <span aria-hidden="true">↗</span></a
+                >
+              </td>
+              <td>
+                <div class="customer-name">{{ order.customerName }}</div>
+                <div class="secondary-text">{{ order.customerEmail }}</div>
+              </td>
+              <td>
+                <span class="status-badge" [ngClass]="'status-' + order.status">{{
+                  order.status
+                }}</span>
+              </td>
+              <td>{{ order.lineItemCount }}</td>
+              <td class="numeric">
+                {{ order.total | number: '1.2-2' }}
+                <span class="secondary-text">{{ order.currency }}</span>
+              </td>
+              <td>{{ order.createdAt | date: 'dd MMM yyyy' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="results-count">
+      {{ visibleOrders().length }} {{ visibleOrders().length === 1 ? 'order' : 'orders' }} shown
+    </p>
+  }
+</section>

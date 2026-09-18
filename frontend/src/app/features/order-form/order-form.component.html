@@ -1,0 +1,188 @@
+<a class="back-link" routerLink="/orders">&larr; Back to orders</a>
+<div class="page-heading">
+  <div>
+    
+    <h1>New order</h1>
+    
+  </div>
+</div>
+<section class="card form-card">
+  <form class="order-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="form-section-heading">
+      <span class="step-number">01</span>
+      <div>
+        <h2>Order information</h2>
+        <p class="subtitle">Start with a reference and currency for this purchase.</p>
+      </div>
+    </div>
+    <div class="field-row">
+      <label>
+        External reference
+        <input
+          type="text"
+          formControlName="externalReference"
+          placeholder="e.g. PO-1001"
+          autocomplete="off"
+        />
+        @if (form.get('externalReference')?.touched && form.get('externalReference')?.invalid) {
+          <span class="field-error">A unique reference is required.</span>
+        }
+      </label>
+
+      <label>
+        Currency
+        <input
+          type="text"
+          formControlName="currency"
+          placeholder="USD"
+          maxlength="3"
+          style="text-transform: uppercase"
+        />
+        @if (form.get('currency')?.touched && form.get('currency')?.invalid) {
+          <span class="field-error">3-letter ISO code, e.g. USD.</span>
+        }
+      </label>
+    </div>
+
+    <div class="form-section-heading">
+      <span class="step-number">02</span>
+      <div>
+        <h2>Customer details</h2>
+        <p class="subtitle">Who is this order for?</p>
+      </div>
+    </div>
+    <div class="field-row">
+      <label>
+        Customer name
+        <input
+          type="text"
+          formControlName="customerName"
+          placeholder="Acme Corp"
+          autocomplete="off"
+        />
+        @if (form.get('customerName')?.touched && form.get('customerName')?.invalid) {
+          <span class="field-error">Customer name is required.</span>
+        }
+      </label>
+
+      <label>
+        Customer email
+        <input
+          type="email"
+          formControlName="customerEmail"
+          placeholder="buyer@acme.com"
+          autocomplete="off"
+        />
+        @if (form.get('customerEmail')?.touched && form.get('customerEmail')?.invalid) {
+          <span class="field-error">A valid email is required.</span>
+        }
+      </label>
+    </div>
+
+    <label class="notes-field">
+      Notes (optional)
+      <textarea
+        formControlName="notes"
+        rows="2"
+        placeholder="Anything the fulfillment team should know"
+      ></textarea>
+    </label>
+
+    <div class="form-section-heading">
+      <span class="step-number">03</span>
+      <div>
+        <h2>Line items</h2>
+        <p class="subtitle">Add the products included in this order.</p>
+      </div>
+    </div>
+    <div formArrayName="lineItems" class="line-items">
+      <div class="line-item-header">
+        <span>Code</span>
+        <span>Description</span>
+        <span>Qty</span>
+        <span>Unit price</span>
+        <span>Line total</span>
+        <span></span>
+      </div>
+
+      @for (item of lineItems.controls; track item; let i = $index) {
+        <div class="line-item-row" [formGroupName]="i">
+          <label
+            ><span class="mobile-label">Code</span
+            ><input type="text" aria-label="Code" formControlName="code" placeholder="SKU-1"
+          /></label>
+          <label
+            ><span class="mobile-label">Description</span
+            ><input
+              type="text"
+              aria-label="Description"
+              formControlName="name"
+              placeholder="Widget"
+          /></label>
+          <label
+            ><span class="mobile-label">Quantity</span
+            ><input type="number" aria-label="Quantity" formControlName="quantity" min="1" step="1"
+          /></label>
+          <label
+            ><span class="mobile-label">Unit price</span
+            ><input
+              type="number"
+              aria-label="Unit price"
+              formControlName="unitPrice"
+              min="0"
+              step="0.01"
+          /></label>
+          <span class="line-total">
+            {{
+              asGroup(item).get('quantity')?.value * asGroup(item).get('unitPrice')?.value || 0
+                | number: '1.2-2'
+            }}
+          </span>
+          <button
+            type="button"
+            class="remove-btn"
+            (click)="removeLineItem(i)"
+            [disabled]="lineItems.length <= 1"
+            [attr.aria-label]="'Remove line item ' + (i + 1)"
+            title="Remove line"
+          >
+            &times;
+          </button>
+        </div>
+        @if (asGroup(item).get('quantity')?.touched && asGroup(item).get('quantity')?.invalid) {
+          <div class="field-error line-item-error">Quantity must be a positive whole number.</div>
+        }
+        @if (asGroup(item).get('unitPrice')?.touched && asGroup(item).get('unitPrice')?.invalid) {
+          <div class="field-error line-item-error">Unit price must be zero or greater.</div>
+        }
+      }
+    </div>
+
+    <button type="button" class="secondary-btn" (click)="addLineItem()">+ Add line item</button>
+
+    <div class="preview-total">
+      Preview total:
+      <strong
+        >{{ previewTotal | number: '1.2-2' }}
+        {{ form.get('currency')?.value || '' | uppercase }}</strong
+      >
+    </div>
+
+    @if (errorMessage()) {
+      <div class="banner banner-error" role="alert">{{ errorMessage() }}</div>
+    }
+    @if (successMessage()) {
+      <div class="banner banner-success" role="status">
+        {{ successMessage() }}
+        <a [routerLink]="['/orders', submittedOrderId()]">View order &rarr;</a>
+      </div>
+    }
+
+    <div class="form-actions">
+      <a class="secondary-btn" routerLink="/orders">Back to orders</a>
+      <button type="submit" class="primary-btn" [disabled]="submitting()">
+        {{ submitting() ? 'Submitting…' : 'Submit order' }}
+      </button>
+    </div>
+  </form>
+</section>

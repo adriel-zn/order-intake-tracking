@@ -1,0 +1,176 @@
+<div class="page-heading">
+  <div class="page-title">
+    <h1>Dashboard</h1>
+    <span class="breadcrumb"><app-icon name="home" /> / Workspace / Overview</span>
+  </div>
+  <a class="secondary-btn" routerLink="/orders/new"><app-icon name="plus" /> New order</a>
+</div>
+@if (error()) {
+  <div class="banner banner-error" role="alert">
+    Could not load the dashboard. Please check your connection and try again.
+    <button class="secondary-btn" (click)="refresh()">Try again</button>
+  </div>
+} @else {
+  @if (loading()) {
+    <p class="loading-state" role="status">Loading your order overview...</p>
+  }
+  <div class="dashboard-grid" [attr.aria-busy]="loading()">
+    <div class="overview">
+      <section class="metrics" aria-label="Order summary">
+        @for (metric of metrics(); track metric.label; let i = $index) {
+          <article class="card metric">
+            <div class="metric-heading">
+              <div>
+                <strong>{{ loading() ? '—' : metric.value }}</strong>
+                <p>{{ metric.label }}</p>
+              </div>
+              <app-icon [name]="metric.icon" />
+            </div>
+            <svg
+              class="sparkline"
+              viewBox="0 0 240 60"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient [attr.id]="'spark-' + i" x1="0" y1="0" x2="1" y2="1">
+                  <stop stop-color="#20b9eb" />
+                  <stop offset="1" stop-color="#5060ff" />
+                </linearGradient>
+              </defs>
+              <path [attr.d]="sparkline(metric.values)" [attr.fill]="'url(#spark-' + i + ')'" />
+            </svg>
+            <span class="metric-note">By order date &middot; last 7 days</span>
+          </article>
+        }
+      </section>
+      <section class="card chart-card">
+        <div class="panel-heading">
+          <h2>Order activity</h2>
+          <span>Last 7 days</span>
+        </div>
+        <div class="chart-legend">
+          <span><i class="blue-dot"></i>Orders received</span
+          ><span><i class="cyan-dot"></i>Currently fulfilled</span>
+        </div>
+        <div class="chart-wrap">
+          <svg
+            viewBox="0 0 580 260"
+            role="img"
+            aria-label="Orders received by creation date over the last seven days, with the number currently fulfilled. Exact counts appear below."
+          >
+            @for (tick of [0, 1, 2, 3, 4]; track tick) {
+              <line
+                x1="48"
+                x2="540"
+                [attr.y1]="218 - tick * 45"
+                [attr.y2]="218 - tick * 45"
+                class="grid-line"
+              />
+              <text x="30" [attr.y]="222 - tick * 45" text-anchor="end">
+                {{ (maximum() * tick) / 4 | number: '1.0-1' }}
+              </text>
+            }
+            @for (day of days; track $index) {
+              <line
+                [attr.x1]="48 + $index * 82"
+                [attr.x2]="48 + $index * 82"
+                y1="38"
+                y2="218"
+                class="grid-line"
+              />
+              <text [attr.x]="48 + $index * 82" y="246" text-anchor="middle">
+                {{ day | date: 'dd MMM' }}
+              </text>
+            }
+            <polyline [attr.points]="points(received())" class="received-line" />
+            <polyline [attr.points]="points(fulfilled())" class="fulfilled-line" />
+            @for (value of received(); track $index) {
+              <circle
+                [attr.cx]="48 + $index * 82"
+                [attr.cy]="218 - (value / maximum()) * 180"
+                r="3.5"
+                fill="#5064ff"
+              />
+            }
+            @for (value of fulfilled(); track $index) {
+              <circle
+                [attr.cx]="48 + $index * 82"
+                [attr.cy]="218 - (value / maximum()) * 180"
+                r="3"
+                fill="#12b5ee"
+              />
+            }
+          </svg>
+        </div>
+        <details class="chart-data">
+          <summary>View daily counts</summary>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Received</th>
+                  <th>Currently fulfilled</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (day of days; track $index) {
+                  <tr>
+                    <td>{{ day | date: 'dd MMM' }}</td>
+                    <td>{{ received()[$index] }}</td>
+                    <td>{{ fulfilled()[$index] }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </details>
+      </section>
+      <a class="card directory-link" routerLink="/orders"
+        ><span class="directory-icon"><app-icon name="orders" /></span
+        ><span
+          ><strong>Manage your orders</strong
+          ><small>Search, filter, and follow every purchase through to fulfillment.</small></span
+        ><app-icon name="arrow"
+      /></a>
+    </div>
+    <section class="card activity-card">
+      <div class="panel-heading">
+        <h2>Activity</h2>
+        <app-icon name="clock" />
+      </div>
+      <p class="activity-caption">Latest order updates</p>
+      <div class="activity-list">
+        @for (order of recent(); track order.id) {
+          <article class="activity-item">
+            <span class="activity-icon"
+              ><app-icon [name]="order.status === 'Fulfilled' ? 'check' : 'box'"
+            /></span>
+            <div class="activity-content">
+              <div class="activity-title">
+                <a [routerLink]="['/orders', order.id]">{{ order.externalReference }}</a
+                ><time [attr.datetime]="order.updatedAt">{{
+                  order.updatedAt | date: 'dd MMM'
+                }}</time>
+              </div>
+              <p>{{ order.customerName }}</p>
+              <span class="status-badge" [ngClass]="'status-' + order.status">{{
+                order.status
+              }}</span
+              ><small>Updated {{ order.updatedAt | date: 'HH:mm' }}</small>
+            </div>
+          </article>
+        } @empty {
+          <div class="activity-empty">
+            <app-icon name="box" />
+            <h3>No activity yet</h3>
+            <p>Order updates will appear here once you create your first order.</p>
+            <a routerLink="/orders/new">Create an order &rarr;</a>
+          </div>
+        }
+      </div>
+      <a class="activity-footer" routerLink="/orders">View all orders <app-icon name="arrow" /></a>
+    </section>
+  </div>
+}

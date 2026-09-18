@@ -1,0 +1,114 @@
+<a class="back-link" routerLink="/orders">&larr; Back to orders</a>
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">EVERY DETAIL, IN VIEW</p>
+    <h1>Order details</h1>
+    <p class="subtitle">Review this purchase and manage its progress.</p>
+  </div>
+</div>
+<section class="card">
+  @if (loadError()) {
+    <div class="banner banner-error" role="alert">{{ loadError() }}</div>
+    <button type="button" class="secondary-btn" (click)="loadOrder()">Try again</button>
+  } @else {
+    @if (store.detailLoading()) {
+      <p role="status">Loading order…</p>
+    } @else {
+      @if (store.selectedOrder(); as order) {
+        <div class="detail-header">
+          <div>
+            <h2>{{ order.externalReference }}</h2>
+            <span class="status-badge" [ngClass]="'status-' + order.status">{{
+              order.status
+            }}</span>
+          </div>
+          <a class="secondary-btn" routerLink="/orders">All orders</a>
+        </div>
+
+        <div class="detail-grid">
+          <div>
+            <div class="label">Customer</div>
+            <div>{{ order.customer.name }}</div>
+            <div class="secondary-text">{{ order.customer.email }}</div>
+          </div>
+          <div>
+            <div class="label">Submitted</div>
+            <div>{{ order.createdAt | date: 'medium' }}</div>
+          </div>
+          <div>
+            <div class="label">Last updated</div>
+            <div>{{ order.updatedAt | date: 'medium' }}</div>
+          </div>
+        </div>
+
+        @if (order.notes) {
+          <div class="notes">
+            <div class="label">Notes</div>
+            <div>{{ order.notes }}</div>
+          </div>
+        }
+
+        <div class="table-scroll">
+          <table class="line-item-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th class="numeric">Qty</th>
+                <th class="numeric">Unit price</th>
+                <th class="numeric">Line total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of order.lineItems; track item.code) {
+                <tr>
+                  <td>{{ item.code }}</td>
+                  <td>{{ item.name }}</td>
+                  <td class="numeric">{{ item.quantity }}</td>
+                  <td class="numeric">{{ item.unitPrice | number: '1.2-2' }}</td>
+                  <td class="numeric">{{ item.lineTotal | number: '1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="numeric">Subtotal</td>
+                <td class="numeric">{{ order.subtotal | number: '1.2-2' }} {{ order.currency }}</td>
+              </tr>
+              <tr class="total-row">
+                <td colspan="4" class="numeric">Total</td>
+                <td class="numeric">{{ order.total | number: '1.2-2' }} {{ order.currency }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <div class="status-actions">
+          @if (allowedNextStatuses.length > 0) {
+            <span class="label">Change status:</span>
+            @for (status of allowedNextStatuses; track status) {
+              <button
+                type="button"
+                class="secondary-btn"
+                [disabled]="changingStatus()"
+                (click)="changeStatus(status)"
+              >
+                Mark as {{ status }}
+              </button>
+            }
+          } @else {
+            <span class="secondary-text"
+              >This order is in a final status and cannot be changed further.</span
+            >
+          }
+        </div>
+
+        @if (errorMessage()) {
+          <div class="banner banner-error" role="alert">{{ errorMessage() }}</div>
+        }
+      } @else {
+        <p class="empty-state">Select an order from the list to see its details.</p>
+      }
+    }
+  }
+</section>

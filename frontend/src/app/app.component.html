@@ -1,0 +1,43 @@
+﻿<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="app-shell" [class.navigation-closed]="!navigationOpen()">
+  <aside class="sidebar" id="main-navigation" [hidden]="!navigationOpen()">
+    <div class="workspace-profile">
+      <span class="profile-avatar"><app-icon name="box" /></span><small>ORDER MANAGEMENT</small>
+    </div>
+    <nav aria-label="Main navigation">
+      <a routerLink="/dashboard" routerLinkActive="active" ariaCurrentWhenActive="page"
+        ><app-icon name="dashboard" /><span>Dashboard</span></a
+      >
+      <a
+        routerLink="/orders"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        ariaCurrentWhenActive="page"
+        ><app-icon name="orders" /><span>All orders</span
+        ><span class="nav-chevron">&rsaquo;</span></a
+      >
+      <a routerLink="/orders/new" routerLinkActive="active" ariaCurrentWhenActive="page"
+        ><app-icon name="plus" /><span>New order</span><span class="nav-chevron">&rsaquo;</span></a
+      >
+    </nav>
+    
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <button
+        class="icon-button"
+        type="button"
+        (click)="navigationOpen.set(!navigationOpen())"
+        [attr.aria-expanded]="navigationOpen()"
+        aria-controls="main-navigation"
+        aria-label="Toggle navigation"
+      >
+        <app-icon name="menu" />
+      </button>
+      
+      
+    </header>
+    <main id="main-content" tabindex="-1"><router-outlet /></main>
+    <footer></footer>
+  </div>
+</div>
