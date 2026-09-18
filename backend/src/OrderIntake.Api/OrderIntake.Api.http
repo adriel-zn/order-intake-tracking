@@ -1,0 +1,77 @@
+@OrderIntake.Api_HostAddress = http://localhost:5251
+
+###
+GET {{OrderIntake.Api_HostAddress}}/health
+
+###
+POST {{OrderIntake.Api_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "externalReference": "PO-1001",
+  "customer": {
+    "email": "buyer@acme.com",
+    "name": "Acme Corp"
+  },
+  "currency": "USD",
+  "notes": "Rush order",
+  "lineItems": [
+    { "code": "WIDGET-1", "name": "Widget", "quantity": 3, "unitPrice": 19.99 },
+    { "code": "GADGET-2", "name": "Gadget", "quantity": 1, "unitPrice": 49.50 }
+  ]
+}
+
+###
+POST {{OrderIntake.Api_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "externalReference": "PO-1001",
+  "customer": {
+    "email": "buyer@acme.com",
+    "name": "Acme Corp"
+  },
+  "currency": "USD",
+  "notes": "Rush order",
+  "lineItems": [
+    { "code": "WIDGET-1", "name": "Widget", "quantity": 3, "unitPrice": 19.99 },
+    { "code": "GADGET-2", "name": "Gadget", "quantity": 1, "unitPrice": 49.50 }
+  ]
+}
+
+###
+POST {{OrderIntake.Api_HostAddress}}/api/orders
+Content-Type: application/json
+
+{
+  "externalReference": "PO-1001",
+  "customer": {
+    "email": "someone-else@acme.com",
+    "name": "Acme Corp"
+  },
+  "currency": "USD",
+  "lineItems": [
+    { "code": "WIDGET-1", "name": "Widget", "quantity": 99, "unitPrice": 19.99 }
+  ]
+}
+
+###
+GET {{OrderIntake.Api_HostAddress}}/api/orders
+
+###
+GET {{OrderIntake.Api_HostAddress}}/api/orders?status=Pending
+
+###
+GET {{OrderIntake.Api_HostAddress}}/api/orders/{id}
+
+###
+PATCH {{OrderIntake.Api_HostAddress}}/api/orders/{id}/status
+Content-Type: application/json
+
+{ "status": "Confirmed" }
+
+###
+PATCH {{OrderIntake.Api_HostAddress}}/api/orders/{id}/status
+Content-Type: application/json
+
+{ "status": "Fulfilled" }
